@@ -8,11 +8,10 @@ namespace Playground
     [UpdateInGroup(typeof(SpatialOSUpdateGroup))]
     internal class DisconnectSystem : ComponentSystem
     {
-        public struct DisconnectData
+        private struct DisconnectData
         {
             public readonly int Length;
             [ReadOnly] public SharedComponentDataArray<OnDisconnected> DisconnectMessage;
-
             [ReadOnly] public ComponentDataArray<WorkerEntityTag> DenotesWorkerEntity;
         }
 

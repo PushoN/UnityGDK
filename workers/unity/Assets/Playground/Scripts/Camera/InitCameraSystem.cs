@@ -9,7 +9,7 @@ namespace Playground
     [UpdateInGroup(typeof(SpatialOSUpdateGroup))]
     public class InitCameraSystem : ComponentSystem
     {
-        public struct Data
+        private struct Data
         {
             public readonly int Length;
             public EntityArray Entites;
@@ -23,7 +23,6 @@ namespace Playground
         {
             for (var i = 0; i < data.Length; i++)
             {
-                var camera = Camera.main;
                 PostUpdateCommands.AddComponent(data.Entites[i], CameraComponentDefaults.Input);
                 PostUpdateCommands.AddComponent(data.Entites[i], CameraComponentDefaults.Transform);
 

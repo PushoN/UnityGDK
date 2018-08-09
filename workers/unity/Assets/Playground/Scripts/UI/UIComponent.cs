@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace Playground.Scripts.UI
+namespace Playground
 {
     public class UIComponent : MonoBehaviour
     {

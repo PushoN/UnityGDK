@@ -23,12 +23,8 @@ namespace Playground
             if (!cachedPrefabs.TryGetValue(prefabPath, out prefab))
             {
                 prefab = Resources.Load<GameObject>(prefabPath);
-                if (prefab == null)
-                {
+                cachedPrefabs[prefabPath] = prefab ??
                     throw new PrefabNotFoundException($"Prefab for prefabPath {prefabPath} not found.");
-                }
-
-                cachedPrefabs[prefabPath] = prefab;
             }
 
             var gameObject = GameObject.Instantiate(prefab, position, rotation);

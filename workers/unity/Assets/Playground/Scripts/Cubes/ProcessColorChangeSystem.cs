@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Generated.Playground;
 using Improbable.Gdk.Core;
+using Unity.Collections;
 using Unity.Entities;
 using UnityEngine;
 
@@ -18,14 +19,15 @@ namespace Playground
                 { Generated.Playground.Color.RED, UnityEngine.Color.red }
             };
 
-        public struct Data
+        private struct Data
         {
             public readonly int Length;
-            public ComponentArray<EventsReceived<ChangeColorEvent>> EventUpdate;
-            public ComponentArray<MeshRenderer> Renderers;
+            [ReadOnly] public ComponentArray<EventsReceived<ChangeColorEvent>> EventUpdate;
+            [ReadOnly] public ComponentArray<MeshRenderer> Renderers;
         }
 
         [Inject] private Data data;
+
         private Dictionary<Generated.Playground.Color, MaterialPropertyBlock> materialPropertyBlocks;
 
         protected override void OnCreateManager(int capacity)

@@ -21,7 +21,7 @@ namespace Playground
 
         protected override void OnUpdate()
         {
-            for (int i = 0; i < scoringData.Length; i++)
+            for (var i = 0; i < scoringData.Length; i++)
             {
                 var playerScore = scoringData.Score[i];
                 foreach (var request in scoringData.CommandRequests[i].Buffer)

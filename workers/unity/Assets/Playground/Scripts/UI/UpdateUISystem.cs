@@ -1,6 +1,5 @@
 using Generated.Playground;
 using Improbable.Gdk.Core;
-using Playground.Scripts.UI;
 using Unity.Collections;
 using Unity.Entities;
 
@@ -9,7 +8,7 @@ namespace Playground
     [UpdateInGroup(typeof(SpatialOSUpdateGroup))]
     public class UpdateUISystem : ComponentSystem
     {
-        public struct PlayerDataLauncher
+        private struct PlayerDataLauncher
         {
             public readonly int Length;
             [ReadOnly] public ComponentDataArray<SpatialOSLauncher> Launcher;
@@ -17,7 +16,7 @@ namespace Playground
             [ReadOnly] public ComponentDataArray<Authoritative<SpatialOSPlayerInput>> PlayerAuth;
         }
 
-        public struct PlayerDataScore
+        private struct PlayerDataScore
         {
             public readonly int Length;
             [ReadOnly] public ComponentDataArray<SpatialOSScore> Score;
@@ -44,7 +43,7 @@ namespace Playground
                 }
             }
 
-            for (int i = 0; i < playerDataScore.Length; i++)
+            for (var i = 0; i < playerDataScore.Length; i++)
             {
                 var score = playerDataScore.Score[i];
                 UIComponent.Main.ScoreText.text = $"Score: {score.Score}";

@@ -14,7 +14,7 @@ namespace Playground
     [UpdateInGroup(typeof(SpatialOSReceiveGroup.EntityInitialisationGroup))]
     internal class GameObjectInitializationSystem : ComponentSystem
     {
-        public struct AddedEntitiesData
+        private struct AddedEntitiesData
         {
             public readonly int Length;
             public EntityArray Entities;
@@ -24,12 +24,12 @@ namespace Playground
             [ReadOnly] public ComponentDataArray<NewlyAddedSpatialOSEntity> NewlyCreatedEntities;
         }
 
-        public struct RemovedEntitiesData
+        private struct RemovedEntitiesData
         {
             public readonly int Length;
             public EntityArray Entities;
             [ReadOnly] public ComponentDataArray<GameObjectReferenceHandle> GameObjectReferenceHandles;
-            public SubtractiveComponent<GameObjectReference> NoGameObjectReference;
+            [ReadOnly] public SubtractiveComponent<GameObjectReference> NoGameObjectReference;
         }
 
         [Inject] private AddedEntitiesData addedEntitiesData;
@@ -40,7 +40,6 @@ namespace Playground
         private Vector3 origin;
         private readonly ViewCommandBuffer viewCommandBuffer = new ViewCommandBuffer();
         private EntityGameObjectCreator entityGameObjectCreator;
-        private uint currentHandle;
         private readonly Dictionary<int, GameObject> entityGameObjectCache = new Dictionary<int, GameObject>();
 
         protected override void OnCreateManager(int capacity)

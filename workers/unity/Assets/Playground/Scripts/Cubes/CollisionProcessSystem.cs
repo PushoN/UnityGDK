@@ -34,8 +34,8 @@ namespace Playground
                 // Handle all the different possible outcomes of the collision.
                 // This requires looking at their most recent launchers.
                 var collision = data.Collision[i];
-                var first = data.Collision[i].ownEntity;
-                var second = data.Collision[i].otherEntity;
+                var first = collision.ownEntity;
+                var second = collision.otherEntity;
                 var first_launchable = EntityManager.GetComponentData<SpatialOSLaunchable>(first);
                 var second_launchable = EntityManager.GetComponentData<SpatialOSLaunchable>(second);
                 var first_launcher = first_launchable.MostRecentLauncher;

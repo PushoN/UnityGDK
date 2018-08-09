@@ -33,7 +33,7 @@ namespace Playground
             public readonly int Length;
             public ComponentDataArray<CameraInput> CameraInput;
             public ComponentDataArray<CameraTransform> CameraTransform;
-            [ReadOnly] public ComponentArray<Rigidbody> RigidBody;
+            [ReadOnly] public ComponentArray<Rigidbody> Rigidbody;
         }
 
         [Inject] private Data data;
@@ -43,7 +43,7 @@ namespace Playground
             for (var i = 0; i < data.Length; i++)
             {
                 var input = UpdateCameraInput(data.CameraInput[i]);
-                var transform = UpdateCameraTransform(input, data.RigidBody[i].position);
+                var transform = UpdateCameraTransform(input, data.Rigidbody[i].position);
 
                 UpdateCamera(transform);
 

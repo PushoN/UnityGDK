@@ -91,7 +91,6 @@ namespace Playground
                 var rigidbody = launchableData.Rigidbody[i];
                 var launchable = launchableData.Launchable[i];
                 var sender = launchableData.Sender[i];
-                var player = 0L;
                 foreach (var request in launchableData.CommandRequests[i].Buffer)
                 {
                     var info = request.RawRequest;
@@ -100,7 +99,7 @@ namespace Playground
                         info.LaunchEnergy * 100.0f,
                         new Vector3(info.ImpactPoint.X, info.ImpactPoint.Y, info.ImpactPoint.Z)
                     );
-                    player = info.Player;
+                    var player = info.Player;
                     launchable.MostRecentLauncher = player;
                 }
 

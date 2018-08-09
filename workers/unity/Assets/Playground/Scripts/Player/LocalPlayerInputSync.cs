@@ -1,5 +1,6 @@
 using Generated.Playground;
 using Improbable.Gdk.Core;
+using Unity.Collections;
 using Unity.Entities;
 using UnityEngine;
 
@@ -8,12 +9,12 @@ namespace Playground
     [UpdateInGroup(typeof(SpatialOSUpdateGroup))]
     internal class LocalPlayerInputSync : ComponentSystem
     {
-        public struct PlayerInputData
+        private struct PlayerInputData
         {
             public readonly int Length;
             public ComponentDataArray<SpatialOSPlayerInput> PlayerInput;
-            public ComponentDataArray<CameraTransform> CameraTransform;
-            public ComponentDataArray<Authoritative<SpatialOSPlayerInput>> PlayerInputAuthority;
+            [ReadOnly] public ComponentDataArray<CameraTransform> CameraTransform;
+            [ReadOnly] public ComponentDataArray<Authoritative<SpatialOSPlayerInput>> PlayerInputAuthority;
         }
 
         [Inject] private PlayerInputData playerInputData;

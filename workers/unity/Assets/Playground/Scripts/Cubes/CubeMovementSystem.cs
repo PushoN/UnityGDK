@@ -1,6 +1,7 @@
 using Generated.Improbable.Transform;
 using Generated.Playground;
 using Improbable.Gdk.Core;
+using Unity.Collections;
 using Unity.Entities;
 using UnityEngine;
 
@@ -9,12 +10,12 @@ namespace Playground
     [UpdateBefore(typeof(UnityEngine.Experimental.PlayerLoop.FixedUpdate))]
     internal class CubeMovementSystem : ComponentSystem
     {
-        public struct Data
+        private struct Data
         {
             public readonly int Length;
-            public ComponentArray<Rigidbody> Rigidbody;
-            public SubtractiveComponent<SpatialOSPlayerInput> NoPlayerInput;
-            public ComponentDataArray<Authoritative<SpatialOSTransform>> TransformAuthority;
+            [ReadOnly] public ComponentArray<Rigidbody> Rigidbody;
+            [ReadOnly] public ComponentDataArray<Authoritative<SpatialOSTransform>> TransformAuthority;
+            [ReadOnly] public SubtractiveComponent<SpatialOSPlayerInput> NoPlayerInput;
         }
 
         [Inject] private Data data;

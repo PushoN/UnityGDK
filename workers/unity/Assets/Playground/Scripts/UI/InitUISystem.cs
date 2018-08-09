@@ -1,6 +1,5 @@
 using Generated.Playground;
 using Improbable.Gdk.Core;
-using Playground.Scripts.UI;
 using Unity.Collections;
 using Unity.Entities;
 using UnityEngine;
@@ -10,7 +9,7 @@ namespace Playground
     [UpdateInGroup(typeof(SpatialOSUpdateGroup))]
     public class InitUISystem : ComponentSystem
     {
-        public struct Data
+        private struct Data
         {
             public readonly int Length;
             public EntityArray Entities;

@@ -1,5 +1,6 @@
 using Generated.Playground;
 using Improbable.Gdk.Core;
+using Unity.Collections;
 using Unity.Entities;
 using UnityEngine;
 
@@ -16,19 +17,18 @@ namespace Playground
         {
             public readonly int Length;
             public EntityArray Entity;
-            public ComponentDataArray<Recharging> Reloading;
             public ComponentDataArray<SpatialOSLauncher> Launcher;
+            [ReadOnly] public ComponentDataArray<Recharging> Reloading;
         }
 
         [Inject] private Data data;
 
         protected override void OnUpdate()
         {
-            var dt = Time.deltaTime;
             for (var i = 0; i < data.Length; i++)
             {
                 var launcher = data.Launcher[i];
-                launcher.RechargeTimeLeft -= dt;
+                launcher.RechargeTimeLeft -= Time.deltaTime;
                 if (launcher.RechargeTimeLeft < 0.0f)
                 {
                     launcher.RechargeTimeLeft = 0.0f;
