@@ -1,6 +1,7 @@
 using Generated.Improbable.Transform;
 using Generated.Playground;
 using Improbable.Gdk.Core;
+using Unity.Collections;
 using Unity.Entities;
 using UnityEngine;
 
@@ -9,29 +10,30 @@ namespace Playground
     [UpdateInGroup(typeof(SpatialOSUpdateGroup))]
     internal class MoveLocalPlayerSystem : ComponentSystem
     {
-        public struct Speed : IComponentData
+        internal struct Speed : IComponentData
         {
             public float CurrentSpeed;
             public float SpeedSmoothVelocity;
+            public float TurnSmoothVelocity;
         }
 
-        public struct NewPlayerData
+        private struct NewPlayerData
         {
             public readonly int Length;
             public EntityArray Entity;
-            public ComponentDataArray<SpatialOSPlayerInput> PlayerInput;
-            public ComponentDataArray<Authoritative<SpatialOSTransform>> TransformAuthority;
-            public SubtractiveComponent<Speed> NoSpeed;
+            [ReadOnly] public ComponentDataArray<SpatialOSPlayerInput> PlayerInput;
+            [ReadOnly] public ComponentDataArray<Authoritative<SpatialOSTransform>> TransformAuthority;
+            [ReadOnly] public SubtractiveComponent<Speed> NoSpeed;
         }
 
         [Inject] private NewPlayerData newPlayerData;
 
-        public struct PlayerInputData
+        private struct PlayerInputData
         {
             public readonly int Length;
-            public ComponentArray<Rigidbody> Rigidbody;
-            public ComponentDataArray<SpatialOSPlayerInput> PlayerInput;
-            public ComponentDataArray<Authoritative<SpatialOSTransform>> TransformAuthority;
+            [ReadOnly] public ComponentArray<Rigidbody> Rigidbody;
+            [ReadOnly] public ComponentDataArray<SpatialOSPlayerInput> PlayerInput;
+            [ReadOnly] public ComponentDataArray<Authoritative<SpatialOSTransform>> TransformAuthority;
             public ComponentDataArray<Speed> Speed;
         }
 
@@ -41,7 +43,6 @@ namespace Playground
         private const float RunSpeed = 6;
 
         private const float TurnSmoothTime = 0.2f;
-        private float turnSmoothVelocity;
 
         private const float SpeedSmoothTime = 0.1f;
 
@@ -53,7 +54,8 @@ namespace Playground
                 var speed = new Speed
                 {
                     CurrentSpeed = 0f,
-                    SpeedSmoothVelocity = 0f
+                    SpeedSmoothVelocity = 0f,
+                    TurnSmoothVelocity = 0f
                 };
 
                 PostUpdateCommands.AddComponent(entity, speed);
@@ -61,23 +63,24 @@ namespace Playground
 
             for (var i = 0; i < playerInputData.Length; i++)
             {
-                var rigidBody = playerInputData.Rigidbody[i];
+                var rigidbody = playerInputData.Rigidbody[i];
 
                 var input = new Vector2(playerInputData.PlayerInput[i].Horizontal,
                     playerInputData.PlayerInput[i].Vertical);
                 var inputDir = input.normalized;
 
+                var speed = playerInputData.Speed[i];
+                var turnSmoothVelocity = speed.TurnSmoothVelocity;
                 if (inputDir != Vector2.zero)
                 {
                     var targetRotation = Mathf.Atan2(inputDir.x, inputDir.y) * Mathf.Rad2Deg;
-                    rigidBody.transform.eulerAngles = Vector3.up * Mathf.SmoothDampAngle(
-                        rigidBody.transform.eulerAngles.y, targetRotation,
+                    rigidbody.transform.eulerAngles = Vector3.up * Mathf.SmoothDampAngle(
+                        rigidbody.transform.eulerAngles.y, targetRotation,
                         ref turnSmoothVelocity, TurnSmoothTime);
                 }
 
                 var running = playerInputData.PlayerInput[i].Running;
                 var targetSpeed = (running ? RunSpeed : WalkSpeed) * inputDir.magnitude;
-                var speed = playerInputData.Speed[i];
                 var currentSpeed = speed.CurrentSpeed;
                 var speedSmoothVelocity = speed.SpeedSmoothVelocity;
 
@@ -85,10 +88,11 @@ namespace Playground
                 playerInputData.Speed[i] = new Speed
                 {
                     CurrentSpeed = currentSpeed,
-                    SpeedSmoothVelocity = speedSmoothVelocity
+                    SpeedSmoothVelocity = speedSmoothVelocity,
+                    TurnSmoothVelocity = turnSmoothVelocity
                 };
 
-                rigidBody.transform.Translate(rigidBody.transform.forward * currentSpeed * Time.deltaTime, Space.World);
+                rigidbody.transform.Translate(rigidbody.transform.forward * currentSpeed * Time.deltaTime, Space.World);
             }
         }
     }
