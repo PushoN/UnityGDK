@@ -2,7 +2,6 @@ using System;
 using Generated.Improbable;
 using Generated.Playground;
 using Improbable.Gdk.Core;
-using Playground.Scripts.UI;
 using Unity.Collections;
 using Unity.Entities;
 using UnityEngine;
@@ -14,7 +13,6 @@ namespace Playground
     {
         private enum PlayerCommand
         {
-            None,
             LaunchSmall,
             LaunchLarge
         };
@@ -69,31 +67,32 @@ namespace Playground
             }
 
             var ray = Camera.main.ScreenPointToRay(UIComponent.Main.Reticle.transform.position);
-            RaycastHit info;
-            if (!Physics.Raycast(ray, out info) || info.rigidbody == null)
+            if (!Physics.Raycast(ray, out var info) || info.rigidbody == null)
             {
                 return;
             }
 
-            var rigidBody = info.rigidbody;
+            var rigidbody = info.rigidbody;
             var sender = playerData.Sender[0];
             var playerId = playerData.SpatialEntity[0].EntityId;
 
-            var component = rigidBody.gameObject.GetComponent<SpatialOSComponent>();
-            if (component != null && view.HasComponent(component.Entity, typeof(SpatialOSLaunchable)))
+            var component = rigidbody.gameObject.GetComponent<SpatialOSComponent>();
+            if (component == null || !view.HasComponent(component.Entity, typeof(SpatialOSLaunchable)))
             {
-                var impactPoint = new Vector3f { X = info.point.x, Y = info.point.y, Z = info.point.z };
-                var launchDirection = new Vector3f { X = ray.direction.x, Y = ray.direction.y, Z = ray.direction.z };
-
-                sender.SendLaunchEntityRequest(playerId, new Generated.Playground.LaunchCommandRequest
-                {
-                    EntityToLaunch = component.SpatialEntityId,
-                    ImpactPoint = impactPoint,
-                    LaunchDirection = launchDirection,
-                    LaunchEnergy = command == PlayerCommand.LaunchLarge ? LargeEnergy : SmallEnergy,
-                    Player = playerId
-                });
+                return;
             }
+
+            var impactPoint = new Vector3f { X = info.point.x, Y = info.point.y, Z = info.point.z };
+            var launchDirection = new Vector3f { X = ray.direction.x, Y = ray.direction.y, Z = ray.direction.z };
+
+            sender.SendLaunchEntityRequest(playerId, new Generated.Playground.LaunchCommandRequest
+            {
+                EntityToLaunch = component.SpatialEntityId,
+                ImpactPoint = impactPoint,
+                LaunchDirection = launchDirection,
+                LaunchEnergy = command == PlayerCommand.LaunchLarge ? LargeEnergy : SmallEnergy,
+                Player = playerId
+            });
         }
     }
 }
