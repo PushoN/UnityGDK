@@ -37,38 +37,12 @@ namespace Playground.Editor
 
         private static void PreprocessPrefabs()
         {
-            if (!DoPrefabsNeedFixing())
-            {
-                return;
-            }
-
-            FixPrefabs();
-
-            AssetDatabase.SaveAssets();
-        }
-
-        private static bool DoPrefabsNeedFixing()
-        {
-            return AssetDatabase.FindAssets("t:Prefab")
-                .Select(AssetDatabase.GUIDToAssetPath)
-                .Select(AssetDatabase.LoadAssetAtPath<GameObject>)
-                .Any(PrefabNeedsFixing);
-        }
-
-        private static bool PrefabNeedsFixing(GameObject prefabObject)
-        {
-            return prefabObject != null
-                && prefabObject.GetComponents<MonoBehaviour>()
-                    .Any(BehaviourNeedsFixing);
-        }
-
-        private static void FixPrefabs()
-        {
             var prefabsToFix = new List<GameObject>();
             var monoBehavioursToDisable = new List<MonoBehaviour>();
 
             var allPrefabObjectsInProject = AssetDatabase.FindAssets("t:Prefab")
                 .Select(AssetDatabase.GUIDToAssetPath)
+                .Where(assetPath => assetPath.Contains("Resources"))
                 .Select(AssetDatabase.LoadAssetAtPath<GameObject>)
                 .Where(prefabObject => prefabObject != null);
 
@@ -78,7 +52,7 @@ namespace Playground.Editor
 
                 foreach (var monoBehaviour in prefabObject
                     .GetComponents<MonoBehaviour>()
-                    .Where(BehaviourNeedsFixing))
+                    .Where(DoesBehaviourNeedFixing))
                 {
                     if (!prefabNeedsFixing)
                     {
@@ -90,15 +64,20 @@ namespace Playground.Editor
                 }
             }
 
-            Undo.RecordObjects(monoBehavioursToDisable.Cast<Object>().ToArray(),
-                "Disable monobehaviours with [Require] fields on prefabs");
-
-            foreach (var monoBehaviour in monoBehavioursToDisable)
+            if (monoBehavioursToDisable.Count > 0)
             {
-                monoBehaviour.enabled = false;
-            }
+                Undo.RecordObjects(monoBehavioursToDisable.Cast<Object>().ToArray(),
+                    "Disable monobehaviours with [Require] fields on prefabs");
 
-            prefabsToFix.ForEach(EditorUtility.SetDirty);
+                foreach (var monoBehaviour in monoBehavioursToDisable)
+                {
+                    monoBehaviour.enabled = false;
+                }
+
+                prefabsToFix.ForEach(EditorUtility.SetDirty);
+
+                AssetDatabase.SaveAssets();
+            }
         }
 
         private static bool IsBehaviourEnabledInEditor(Object obj)
@@ -107,16 +86,17 @@ namespace Playground.Editor
                 && EditorUtility.GetObjectEnabled(obj) == 1;
         }
 
-        private static bool RequiresReadersOrWriters(Type targetType)
+        private static bool DoesBehaviourRequireReadersOrWriters(Type targetType)
         {
             return targetType
                 .GetFields(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public)
                 .Any(field => Attribute.IsDefined(field, typeof(RequireAttribute), false));
         }
 
-        private static bool BehaviourNeedsFixing(MonoBehaviour monoBehaviour)
+        private static bool DoesBehaviourNeedFixing(MonoBehaviour monoBehaviour)
         {
-            return IsBehaviourEnabledInEditor(monoBehaviour) && RequiresReadersOrWriters(monoBehaviour.GetType());
+            return IsBehaviourEnabledInEditor(monoBehaviour) &&
+                DoesBehaviourRequireReadersOrWriters(monoBehaviour.GetType());
         }
     }
 }
