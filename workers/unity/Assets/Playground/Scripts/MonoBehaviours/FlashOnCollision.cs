@@ -15,13 +15,16 @@ public class FlashOnCollision : MonoBehaviour
 
     private MeshRenderer renderer;
 
-    private static MaterialPropertyBlock basicMaterial = new MaterialPropertyBlock();
-    private static MaterialPropertyBlock flashingMaterial = new MaterialPropertyBlock();
+    private static MaterialPropertyBlock basicMaterial;
+    private static MaterialPropertyBlock flashingMaterial;
 
     [RuntimeInitializeOnLoadMethod]
     public static void SetupColors()
     {
+        basicMaterial = new MaterialPropertyBlock();
         basicMaterial.SetColor("_Color", Color.white);
+
+        flashingMaterial = new MaterialPropertyBlock();
         flashingMaterial.SetColor("_Color", Color.red);
     }
 
