@@ -10,11 +10,11 @@ Commands are SpatialOS's equivalent of remote procedure calls.
 
 ### Sending command requests
 
-A worker instance can send a command using a `CommandRequestSender<T>` ECS component, where `T` is the SpatialOS component the command is defined in.
+A worker instance can send a command using a `ComponentName.CommandSenders.CommandName` ECS component, where `ComponentName` is the SpatialOS component the command is defined in and `CommandName` is the name of the command in schema.
 
 Note that a worker instance _does not need_ authority over the relevant SpatialOS component to send commands to a SpatialOS entity.
 
-Because of this, the Unity GDK attaches a `CommandRequestSender<T>` (where `T` is the SpatialOS component the command is defined in) for each SpatialOS component with a command to all ECS entities. This means any ECS entity can send any command to any SpatialOS entity. 
+Because of this, the Unity GDK attaches a `ComponentName.CommandSenders.CommandName` for each command to all ECS entities that represent a SpatialOS entity. This means any ECS entity can send any command to any SpatialOS entity. 
 
 Given this schema:
 
@@ -46,10 +46,12 @@ The Unity GDK generates these types:
 
 * `BuildRequest` - Equivalent of the schema type.
 * `BuildResponse` - Equivalent of the schema type.
-* `BuildWall.Request` - Represents the `build_wall` command request. Holds metadata associated with the request (for example, the caller's attribute set) and a `BuildRequest` object. Implements `IIncomingCommandRequest`.
-* `BuildWall.Response` - Represents the `build_wall` command response. Holds metadata associated with the response (e.g. status code) and a `BuildResponse` object. Implements `IIncomingCommandResponse`.
+* `Builder.BuildWall.Request` - Represents a `build_wall` command request that you wish to send. Holds metadata associated with the request (for example, the target EntityId) and a `BuildRequest` struct.
+* `Builder.BuildWall.Response` - Represents the `build_wall` command response that you wish to send. We provide two helper methods for constructing these: `CreateResponse` for successful commands and `CreateFailure` for unsuccessful commands.
+* `Builder.BuildWall.ReceivedRequest` - Represents a `build_wall` command request that you have received. Holds metadata associated with the request (for example, the caller attribute set) and a `BuildRequest` struct.
+* `Builder.BuildWall.ReceivedResponse` - Represents a `build_wall` command response that you have received. Holds metadata associated with the response (for example, the status code). If the command was successful the `ResponsePayload` field will be set and if the command was unsuccessful the `Message` field will be set.
 
-The corresponding ECS component for sending commands is `CommandRequestSender<Builder>`, which has the function `SendBuildWallRequest(long targetEntityId, BuildRequest buildRequest)` to send the command request.
+The corresponding ECS component for sending commands is `Builder.CommandSenders.BuildWall`, which has a list of `Builder.BuildWall.Request` objects on it. To send a command, add a new request object to the list.
 
 Here's an example of sending a command request:
 
@@ -60,7 +62,7 @@ public class BuildSystem : ComponentSystem
     {
         public readonly int Length;
         public ComponentDataArray<SpatialOSBuilder> Builders;
-        public ComponentDataArray<CommandRequestSender<SpatialOSBuilder>> BuilderRequestSender;
+        public ComponentDataArray<Builder.CommandSenders.BuildWall> BuildWallSender;
         public ComponentDataArray<SpatialEntityId> EntityIds;
     }
 
@@ -70,16 +72,21 @@ public class BuildSystem : ComponentSystem
     {
         for(var i = 0; i < data.Length; i++)
         {
-            var requestSender = data.BuilderRequestSender[i];
+            var requestSender = data.BuildWallSender[i];
             var entityId = data.EntityIds[i];
             
-            BuildRequest buildRequest = new BuildRequest
+            Builder.BuildWall.Request request = new Builder.BuildWall.Request
             {
-                Location = new Location(...),
-                Rotation = new Rotation(...)
-            }
+                TargetEntityId = entityId,
+                Payload = new BuildRequest
+                {
+                    Location = new Location(...),
+                    Rotation = new Rotation(...)
+                }
+            };
+
             
-            requestSender.SendBuildWallRequest(entityId, buildRequest);
+            requestSender.Add(request);
         }
     }
 }
@@ -87,7 +94,7 @@ public class BuildSystem : ComponentSystem
 
 This system runs on a client. It injects all SpatialOS entities in the client's view that have the `Builder` SpatialOS component, and sends a `build_wall` command to each SpatialOS entity (which will be received by the managed worker).
 
-To send a `build_wall` command in a system, you need to inject `CommandRequestSender<Builder>` into the system like any other ECS component.
+To send a `build_wall` command in a system, you need to inject `Builder.CommandSenders.BuildWall` into the system like any other ECS component.
 
 ### Responding to command requests
 
